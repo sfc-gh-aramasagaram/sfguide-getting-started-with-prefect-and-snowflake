@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Getting Started with Prefect and Snowflake</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sf-blue: #29B5E8;
+  --sf-bg: #ffffff;
+  --sf-bg-header: #1B2735;
+  --sf-text: #1e2a3a;
+  --sf-text-light: #5a6b7d;
+  --sf-border: #e5e9ed;
+  --sf-code-bg: #f4f6f8;
+  --sf-code-border: #e2e6ea;
+  --sf-link: #1f6feb;
+  --sf-toc-active: #29B5E8;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--sf-text);
+  background: var(--sf-bg);
+  line-height: 1.7;
+  font-size: 16px;
+}
+.site-header {
+  background: var(--sf-bg-header);
+  padding: 16px 40px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.site-header svg { width: 32px; height: 32px; }
+.breadcrumbs {
+  padding: 12px 40px;
+  font-size: 13px;
+  color: var(--sf-text-light);
+  border-bottom: 1px solid var(--sf-border);
+}
+.breadcrumbs a { color: var(--sf-link); text-decoration: none; }
+.breadcrumbs a:hover { text-decoration: underline; }
+.breadcrumbs span { margin: 0 6px; color: #ccc; }
+.hero {
+  background: var(--sf-bg-header);
+  padding: 32px 40px 40px;
+  color: #fff;
+}
+.hero .badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--sf-blue);
+  margin-bottom: 12px;
+}
+.hero .badge::before {
+  content: '\2714';
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  background: var(--sf-blue);
+  color: #fff;
+  border-radius: 50%;
+  font-size: 10px;
+}
+.hero h1 {
+  font-size: 32px;
+  font-weight: 700;
+  line-height: 1.2;
+  margin-bottom: 16px;
+}
+.hero .meta {
+  display: flex;
+  gap: 24px;
+  font-size: 14px;
+  color: #a0b0c0;
+}
+.hero .meta span { display: flex; align-items: center; gap: 6px; }
+.fork-btn {
+  display: inline-block;
+  margin-top: 20px;
+  padding: 10px 24px;
+  border: 1.5px solid var(--sf-blue);
+  border-radius: 24px;
+  color: var(--sf-blue);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  transition: all 0.15s;
+}
+.fork-btn:hover { background: var(--sf-blue); color: #fff; }
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 240px;
+  gap: 0;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+.content {
+  padding: 40px 60px 80px 0;
+  min-width: 0;
+}
+.content h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 20px;
+  display: none;
+}
+.content h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 48px 0 20px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--sf-border);
+  scroll-margin-top: 24px;
+}
+.content section:first-of-type h2 { margin-top: 0; }
+.content h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 32px 0 12px;
+}
+.content p { margin-bottom: 16px; }
+.content a { color: var(--sf-link); text-decoration: none; }
+.content a:hover { text-decoration: underline; }
+.content strong { font-weight: 600; }
+.content ul, .content ol { margin: 0 0 16px 24px; }
+.content li { margin-bottom: 6px; }
+.content li::marker { color: var(--sf-blue); }
+.code-block {
+  margin: 16px 0 20px;
+  border: 1px solid var(--sf-code-border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f0f2f4;
+  padding: 6px 16px;
+  border-bottom: 1px solid var(--sf-code-border);
+}
+.code-lang {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sf-text-light);
+  text-transform: uppercase;
+}
+.copy-btn {
+  background: transparent;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 3px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--sf-text-light);
+  transition: all 0.15s;
+}
+.copy-btn:hover { background: #e0e4e8; }
+pre {
+  background: var(--sf-code-bg);
+  padding: 16px;
+  overflow-x: auto;
+  font-size: 13.5px;
+  line-height: 1.5;
+  tab-size: 4;
+  white-space: pre;
+}
+pre code {
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  background: none;
+  padding: 0;
+  color: var(--sf-text);
+  white-space: pre;
+}
+code {
+  font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  background: var(--sf-code-bg);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.88em;
+  color: #d63384;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 16px 0 20px;
+  font-size: 14px;
+}
+th, td {
+  text-align: left;
+  padding: 10px 14px;
+  border: 1px solid var(--sf-border);
+}
+th {
+  background: #f4f6f8;
+  font-weight: 600;
+  font-size: 13px;
+}
+blockquote {
+  border-left: 3px solid var(--sf-blue);
+  margin: 16px 0;
+  padding: 12px 20px;
+  background: #f0f7ff;
+  border-radius: 0 6px 6px 0;
+  color: var(--sf-text-light);
+  font-size: 14px;
+}
+.img-placeholder {
+  background: #f4f6f8;
+  border: 2px dashed #d0d6dc;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  color: #8896a4;
+  font-size: 14px;
+  margin: 20px 0;
+}
+.toc {
+  position: sticky;
+  top: 24px;
+  align-self: start;
+  padding: 32px 0 32px 24px;
+  border-left: 1px solid var(--sf-border);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+.toc-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--sf-text-light);
+  margin-bottom: 16px;
+}
+.toc-link {
+  display: block;
+  padding: 4px 0;
+  font-size: 12.5px;
+  color: var(--sf-text-light);
+  text-decoration: none;
+  line-height: 1.35;
+  transition: color 0.15s;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.toc-link:hover { color: var(--sf-text); }
+.toc-link.active {
+  color: var(--sf-toc-active);
+  font-weight: 500;
+}
+.toc-link.toc-sub {
+  padding-left: 12px;
+  font-size: 11.5px;
+  color: #8896a4;
+}
+.toc-link.toc-sub.active {
+  color: var(--sf-toc-active);
+  font-weight: 500;
+}
+@media (max-width: 900px) {
+  .layout { grid-template-columns: 1fr; padding: 0 20px; }
+  .toc { display: none; }
+  .content { padding-right: 0; }
+  .hero, .breadcrumbs, .site-header { padding-left: 20px; padding-right: 20px; }
+}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <svg viewBox="0 0 36 36" fill="none"><path d="M18 2.4C9.387 2.4 2.4 9.387 2.4 18S9.387 33.6 18 33.6 33.6 26.613 33.6 18 26.613 2.4 18 2.4z" fill="#29B5E8"/><path d="M21.6 11.7c0-.497-.403-.9-.9-.9h-5.4c-.497 0-.9.403-.9.9v1.5h7.2v-1.5zm-8.1 3v9.6c0 .497.403.9.9.9h7.2c.497 0 .9-.403.9-.9v-9.6h-9z" fill="#fff"/></svg>
+  <span style="color:#fff;font-weight:600;font-size:15px;">snowflake</span>
+</header>
+<nav class="breadcrumbs">
+  <a href="#">Snowflake for Developers</a>
+  <span>/</span>
+  <a href="#">Guides</a>
+  <span>/</span>
+  Getting Started with Prefect and Snowflake
+</nav>
+<section class="hero">
+  <div class="badge">Quickstart</div>
+  <h1>Build Workflows That Think, Decide, and Act Across Systems</h1>
+  <div class="meta">
+    <span>&#128196; Prefect, Cortex AI, Orchestration</span>
+    <span>&#9998; Snowflake &amp; Prefect</span>
+  </div>
+  <a class="fork-btn" href="https://github.com/Snowflake-Labs/sfguide-getting-started-with-prefect-and-snowflake" target="_blank">Fork Repo</a>
+</section>
+<div class="layout">
+  <main class="content">
+    <h1>Build Workflows That Think, Decide, and Act Across Systems</h1>
+
+<section id="overview"><h2>Overview</h2><p>Every organization runs workflows that span multiple systems. A customer submits a loan application — it needs to be scored by an AI model, checked against compliance rules, routed to an underwriter if the amount is high enough, and the decision needs to land back in the CRM and notify the operations team. A supplier sends an invoice — it needs to be matched against purchase orders in the ERP, flagged for anomalies, approved by finance if the amount exceeds a threshold, and posted to the ledger. A patient's lab results come in — they need to be compared against clinical baselines, escalated to the care team if values are critical, and the chart needs to be updated across three systems before the next appointment.</p>
+<p>These workflows are not static. The next step depends on what the AI model returns, what the data says, or what a human decides. They cross system boundaries — databases, SaaS platforms, notification channels, approval systems. They need to recover when something fails midway. And they need observability — not just "did it run?" but "what did it decide, why, and who approved it?"</p>
+<p>This is the kind of workflow <a href="https://www.prefect.io/" target="_blank">Prefect</a> is purpose-built for. Prefect is a Python-native orchestration platform that brings <strong>durable execution</strong>, <strong>event-driven automation</strong>, <strong>human-in-the-loop approvals</strong>, and <strong>runtime decision-making</strong> to any Python workflow. When paired with Snowflake and <a href="https://docs.snowflake.com/en/user-guide/snowflake-cortex/llm-functions" target="_blank">Cortex AI</a>, Prefect becomes the nervous system that coordinates intelligent, multi-system workflows — while Snowflake serves as the data platform and AI engine at the center.</p>
+<h3>What We'll Build</h3>
+<p>In this guide, we'll build an end-to-end <strong>agentic PR review pipeline</strong> in a matter of minutes — a practical example that demonstrates how Prefect and Snowflake work together for workflows that cross system boundaries and make decisions at runtime. The pipeline will:</p>
+<ol><li><strong>React</strong> to a pull request in GitHub</li><li><strong>Ingest</strong> the PR data into Snowflake</li><li><strong>Classify risk and summarize changes</strong> using Snowflake Cortex AI — the intelligence runs inside Snowflake, not an external LLM</li><li><strong>Query historical context</strong> from Snowflake to inform the decision</li><li><strong>Branch at runtime</strong> based on the AI assessment — low risk auto-approves, medium/high risk escalates</li><li><strong>Notify</strong> the team in Slack and <strong>pause for human approval</strong></li><li><strong>Write</strong> the final assessment back to Snowflake</li><li><strong>Merge or close</strong> the PR on GitHub with a Cortex AI review comment</li><li><strong>Send</strong> a completion notice to Slack</li></ol>
+<p>If the pipeline fails at step 7, Prefect <strong>resumes from step 7</strong> — it doesn't re-run the Cortex AI calls or re-fetch from GitHub. That's durable execution.</p>
+<h3>The Architecture</h3>
+<p><img src="assets/architecture.png" alt="Architecture" style="max-width:100%;border-radius:8px;margin:20px 0;"/></p>
+<h3>Prerequisites</h3>
+<ul><li>Snowflake account with Cortex AI access</li><li>Prefect Cloud account (free tier works)</li><li>GitHub account with a test repository</li><li>Slack workspace with a bot app</li><li>Python 3.9+</li></ul>
+<blockquote><strong>Detailed setup instructions</strong> for Snowflake, Python, Slack, and GitHub are in the <a href="https://github.com/snowflake-eng/sfguide-getting-started-with-prefect-and-snowflake" target="_blank">companion repo</a>. This guide focuses on the pipeline itself.</blockquote></section>
+<section id="setup"><h2>Setup</h2><p>The companion repo has full setup instructions. Here's the minimum to get running:</p>
+<p><strong>Snowflake</strong> — Run this in a SQL Worksheet to create the database, tables, and seed data:</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code>CREATE DATABASE IF NOT EXISTS PREFECT_QUICKSTART;
+CREATE SCHEMA IF NOT EXISTS PREFECT_QUICKSTART.RAW;
+CREATE SCHEMA IF NOT EXISTS PREFECT_QUICKSTART.ANALYTICS;
+CREATE WAREHOUSE IF NOT EXISTS PREFECT_WH WITH WAREHOUSE_SIZE=&#x27;XSMALL&#x27; AUTO_SUSPEND=60 AUTO_RESUME=TRUE;
+
+-- Verify Cortex AI works in your region
+SELECT SNOWFLAKE.CORTEX.COMPLETE(&#x27;mistral-large2&#x27;, &#x27;Say hello&#x27;) AS test;</code></pre></div>
+<blockquote>If the Cortex test fails, try <code>llama3.1-70b</code> or <code>claude-3-5-sonnet</code> — model availability varies by region. You can also enable cross-region inference: <code>ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'ANY_REGION';</code></blockquote>
+<blockquote>Full table DDL and seed data are in the repo's <code>setup.sql</code>.</blockquote>
+<p><strong>Python</strong> — Install dependencies and authenticate:</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code>uv pip install prefect requests pandas &quot;snowflake-connector-python[pandas]&quot;
+prefect cloud login</code></pre></div>
+<blockquote><code>pause_flow_run</code> requires a connection to Prefect Cloud (or a self-hosted Prefect server). Make sure <code>prefect cloud login</code> completes before running the pipeline.</blockquote>
+<p><strong>Secrets</strong> — Set these environment variables (or use Prefect Blocks/Secrets):</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code>export GITHUB_TOKEN=your_github_pat
+export SNOWFLAKE_CONNECTION_NAME=your_connection
+export SLACK_BOT_TOKEN=xoxb-your-bot-token
+export SLACK_CHANNEL=your-channel</code></pre></div>
+<blockquote>See the <a href="https://github.com/snowflake-eng/sfguide-getting-started-with-prefect-and-snowflake" target="_blank">repo README</a> for Snowflake connection configuration, Slack app setup, GitHub token scopes, and <code>uv</code> / <code>pyproject.toml</code> setup.</blockquote></section>
+<section id="the-pipeline-fetch-and-ingest"><h2>The Pipeline — Fetch and Ingest</h2><p>Create <code>pr_review_pipeline.py</code>. The pipeline starts by fetching PR data from GitHub and landing it in Snowflake.</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">python</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code># retries with exponential backoff — handles GitHub rate limits automatically
+@task(retries=3, retry_delay_seconds=exponential_backoff(backoff_factor=2), log_prints=True)
+def fetch_pr_data(repo: str, pr_number: int) -&gt; dict:
+    logger = get_run_logger()
+    headers = {&quot;Authorization&quot;: f&quot;token {GITHUB_TOKEN}&quot;} if GITHUB_TOKEN else {}
+
+    # Fetch PR metadata (title, author, stats)
+    pr_resp = requests.get(f&quot;https://api.github.com/repos/{repo}/pulls/{pr_number}&quot;, headers=headers)
+    pr_resp.raise_for_status()
+    pr = pr_resp.json()
+
+    # Fetch the raw diff separately (same endpoint, different Accept header)
+    diff_resp = requests.get(
+        f&quot;https://api.github.com/repos/{repo}/pulls/{pr_number}&quot;,
+        headers={**headers, &quot;Accept&quot;: &quot;application/vnd.github.v3.diff&quot;},
+    )
+
+    # Return a clean dict — truncate diff to 50k chars to stay within Cortex limits
+    return {
+        &quot;pr_number&quot;: pr_number, &quot;repo&quot;: repo,
+        &quot;title&quot;: pr[&quot;title&quot;], &quot;author&quot;: pr[&quot;user&quot;][&quot;login&quot;],
+        &quot;diff_content&quot;: diff_resp.text[:50000],
+        &quot;files_changed&quot;: pr[&quot;changed_files&quot;],
+        &quot;additions&quot;: pr[&quot;additions&quot;], &quot;deletions&quot;: pr[&quot;deletions&quot;],
+        &quot;created_at&quot;: pr[&quot;created_at&quot;],
+    }</code></pre></div>
+<p>Note the <strong>exponential backoff</strong>: <code>exponential_backoff(backoff_factor=2)</code> generates delays of 2s, 4s, 8s, etc. If GitHub's API is rate-limited, Prefect retries automatically with increasing wait times.</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">python</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code>@task(retries=2, retry_delay_seconds=exponential_backoff(backoff_factor=2), log_prints=True)
+def load_pr_to_snowflake(pr_data: dict) -&gt; int:
+    conn = get_connection()
+    # Build a single-row DataFrame matching the PULL_REQUESTS table schema
+    df = pd.DataFrame([{
+        &quot;PR_NUMBER&quot;: pr_data[&quot;pr_number&quot;], &quot;REPO&quot;: pr_data[&quot;repo&quot;],
+        &quot;TITLE&quot;: pr_data[&quot;title&quot;], &quot;AUTHOR&quot;: pr_data[&quot;author&quot;],
+        &quot;DIFF_CONTENT&quot;: pr_data[&quot;diff_content&quot;],
+        &quot;FILES_CHANGED&quot;: pr_data[&quot;files_changed&quot;],
+        &quot;ADDITIONS&quot;: pr_data[&quot;additions&quot;], &quot;DELETIONS&quot;: pr_data[&quot;deletions&quot;],
+        &quot;CREATED_AT&quot;: pd.Timestamp(pr_data[&quot;created_at&quot;]),
+    }])
+
+    # write_pandas bulk-loads via PUT + COPY INTO — fast even for large diffs
+    write_pandas(conn=conn, df=df, table_name=&quot;PULL_REQUESTS&quot;,
+                 database=&quot;PREFECT_QUICKSTART&quot;, schema=&quot;RAW&quot;)
+    return 1</code></pre></div>
+<p>Every PR that enters this pipeline gets a permanent record in Snowflake.</p></section>
+<section id="the-pipeline-cortex-ai-assessment"><h2>The Pipeline — Cortex AI Assessment</h2><p>This is the most important step. Instead of calling an external LLM, the AI runs <strong>inside Snowflake</strong> — co-located with your data, governed by your access policies. We use <strong><code>CLASSIFY_TEXT</code></strong> for risk classification (returns a clean category — no prompt engineering or output parsing needed) and <strong><code>COMPLETE</code></strong> for the free-form summary.</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">python</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code>@task(retries=2, retry_delay_seconds=exponential_backoff(backoff_factor=2), log_prints=True)
+def cortex_assess_pr(pr_data: dict) -&gt; dict:
+    logger = get_run_logger()
+    conn = get_connection()
+    # Truncate diff to 5k chars — balances context vs. token cost
+    diff_preview = pr_data[&quot;diff_content&quot;][:5000]
+
+    # Build a shared context string for both Cortex calls
+    pr_context = (
+        f&quot;PR Title: {pr_data[&#x27;title&#x27;]}\n&quot;
+        f&quot;Files changed: {pr_data[&#x27;files_changed&#x27;]}, &quot;
+        f&quot;+{pr_data[&#x27;additions&#x27;]}/-{pr_data[&#x27;deletions&#x27;]}\n&quot;
+        f&quot;Diff:\n{diff_preview}&quot;
+    )
+
+    summarize_prompt = (
+        f&quot;Summarize this PR in 2-3 sentences for a technical reviewer.\n\n{pr_context}&quot;
+    )
+
+    cur = conn.cursor()
+    # CLASSIFY_TEXT: purpose-built for classification — returns one of the given categories
+    cur.execute(
+        &quot;SELECT SNOWFLAKE.CORTEX.CLASSIFY_TEXT(%s, [&#x27;low&#x27;, &#x27;medium&#x27;, &#x27;high&#x27;])&quot;,
+        (pr_context,),
+    )
+    risk_level = cur.fetchone()[0].strip().lower()
+
+    # COMPLETE: free-form generation for the summary
+    cur.execute(&quot;SELECT SNOWFLAKE.CORTEX.COMPLETE(%s, %s)&quot;, (&quot;mistral-large2&quot;, summarize_prompt))
+    summary = cur.fetchone()[0].strip()
+    cur.close()
+
+    # Defensive fallback in case CLASSIFY_TEXT returns something unexpected
+    if risk_level not in (&quot;low&quot;, &quot;medium&quot;, &quot;high&quot;):
+        risk_level = &quot;medium&quot;
+
+    return {&quot;risk_level&quot;: risk_level, &quot;summary&quot;: summary}</code></pre></div>
+<p>Two Cortex calls happen here — <code>CLASSIFY_TEXT</code> for structured classification, <code>COMPLETE</code> for free-form generation. Each costs credits on an XSMALL warehouse (expect ~0.01-0.02 credits per call). This is the <strong>most expensive step</strong> in the pipeline. If anything downstream fails, Prefect doesn't re-execute these calls on retry — that's durable execution.</p>
+<blockquote><strong>Why two different Cortex functions?</strong> Use the right tool for the job. <code>CLASSIFY_TEXT</code> guarantees a clean category from your list — no regex parsing, no prompt engineering for output format. <code>COMPLETE</code> is for open-ended generation where you need free-form text.</blockquote></section>
+<section id="the-pipeline-decision-and-human-gate"><h2>The Pipeline — Decision and Human Gate</h2><p>Based on the Cortex AI classification and historical context, the pipeline <strong>decides at runtime</strong> what path to take.</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">python</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code>@task(retries=2, retry_delay_seconds=exponential_backoff(backoff_factor=2), log_prints=True)
+def get_historical_context(pr_data: dict) -&gt; dict:
+    conn = get_connection()
+    cur = conn.cursor()
+    # Bind parameter for AUTHOR — safe against SQL injection
+    cur.execute(
+        &quot;SELECT COUNT(*) AS total_prs, &quot;
+        &quot;SUM(CASE WHEN HAD_INCIDENT THEN 1 ELSE 0 END) AS incidents &quot;
+        &quot;FROM PREFECT_QUICKSTART.ANALYTICS.PR_HISTORY &quot;
+        &quot;WHERE AUTHOR = %s&quot;,
+        (pr_data[&quot;author&quot;],),
+    )
+    result = cur.fetchone()
+    cur.close()
+    return {&quot;total_prs&quot;: result[0] or 0, &quot;incident_count&quot;: result[1] or 0}
+
+
+@task(log_prints=True)
+def make_decision(pr_data: dict, assessment: dict, history: dict) -&gt; dict:
+    risk = assessment[&quot;risk_level&quot;]
+
+    # Elevate risk if Cortex said &quot;medium&quot; but the author has caused incidents before
+    if risk == &quot;high&quot; or (risk == &quot;medium&quot; and history[&quot;incident_count&quot;] &gt; 0):
+        effective_risk = &quot;high&quot;
+    elif risk == &quot;medium&quot;:
+        effective_risk = &quot;medium&quot;
+    else:
+        effective_risk = &quot;low&quot;
+
+    # This dict drives the runtime branching in the flow
+    return {
+        &quot;effective_risk&quot;: effective_risk,
+        &quot;requires_approval&quot;: effective_risk in (&quot;medium&quot;, &quot;high&quot;),
+        &quot;auto_approved&quot;: effective_risk == &quot;low&quot;,
+    }</code></pre></div>
+<p>This is <strong>runtime branching</strong> — the pipeline's next steps depend on values computed in this run, not a predetermined DAG. An author with prior incidents gets elevated risk, which triggers human approval.</p>
+<p>For human-in-the-loop, define a type-safe input schema:</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">python</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code># Type-safe input schema — Prefect renders this as a form in the Cloud UI
+class ReviewDecision(RunInput):
+    approved: bool
+    reviewer_name: str
+    notes: str = &quot;&quot;</code></pre></div>
+<p>When the flow calls <code>pause_flow_run(wait_for_input=ReviewDecision, timeout=86400)</code>, execution literally <strong>stops</strong> and waits for a human to submit this form in Prefect Cloud (up to 24 hours). No custom webhook infrastructure. No polling loop.</p></section>
+<section id="the-pipeline-close-the-loop"><h2>The Pipeline — Close the Loop</h2><p>After the decision, the pipeline closes the loop across all systems — Snowflake, GitHub, and Slack.</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">python</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code>@task(retries=2, retry_delay_seconds=exponential_backoff(backoff_factor=2), log_prints=True)
+def close_github_pr(pr_data: dict, assessment: dict, decision: dict) -&gt; None:
+    headers = {&quot;Authorization&quot;: f&quot;token {GITHUB_TOKEN}&quot;}
+    repo, pr_num = pr_data[&quot;repo&quot;], pr_data[&quot;pr_number&quot;]
+    approved = decision.get(&quot;final_approved&quot;, False)
+
+    # Post the Cortex AI summary as a review comment on the PR
+    comment = (
+        f&quot;## {&#x27;✅&#x27; if approved else &#x27;❌&#x27;} Prefect PR Review\n\n&quot;
+        f&quot;**Risk:** {decision[&#x27;effective_risk&#x27;].upper()}\n&quot;
+        f&quot;**Reviewer:** {decision.get(&#x27;reviewer&#x27;, &#x27;auto&#x27;)}\n\n&quot;
+        f&quot;### Cortex AI Summary\n{assessment[&#x27;summary&#x27;]}\n\n&quot;
+        f&quot;---\n*Assessed by Prefect + Snowflake Cortex AI*&quot;
+    )
+    requests.post(f&quot;https://api.github.com/repos/{repo}/issues/{pr_num}/comments&quot;,
+                  headers=headers, json={&quot;body&quot;: comment})
+
+    # Merge (squash) if approved, close if rejected
+    if approved:
+        requests.put(f&quot;https://api.github.com/repos/{repo}/pulls/{pr_num}/merge&quot;,
+                     headers=headers, json={&quot;merge_method&quot;: &quot;squash&quot;})
+    else:
+        requests.patch(f&quot;https://api.github.com/repos/{repo}/pulls/{pr_num}&quot;,
+                       headers=headers, json={&quot;state&quot;: &quot;closed&quot;})</code></pre></div>
+<p>The pipeline also sends <strong>two Slack notifications</strong> — one when approval is needed (with a deep-link to Prefect Cloud), and one when the pipeline completes with the final decision.</p>
+<p><img src="assets/SS4.png" alt="SS4 — Slack channel showing the approval request message with Review and Approve button" style="max-width:100%;border-radius:8px;margin:20px 0;"/></p></section>
+<section id="the-flow-wiring-it-together"><h2>The Flow — Wiring It Together</h2><p>Here's where the agentic behavior comes together. One flow, four systems, runtime branching, and a human gate:</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">python</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code>@flow(name=&quot;pr-review-agent&quot;, log_prints=True, persist_result=True)
+def pr_review_agent(repo: str, pr_number: int):
+    logger = get_run_logger()
+
+    # Get the flow run ID so we can deep-link Slack notifications to Prefect Cloud
+    from prefect.runtime import flow_run
+    flow_run_id = str(flow_run.id)
+
+    # Open a single Snowflake connection for the entire flow — avoids repeated
+    # OAuth browser popups and is more efficient than connecting per-task.
+    conn = snowflake.connector.connect(connection_name=SF_CONNECTION)
+    # Tag all queries so you can find them in Snowflake&#x27;s QUERY_HISTORY
+    conn.cursor().execute(&quot;ALTER SESSION SET QUERY_TAG = &#x27;prefect-pr-review&#x27;&quot;)
+
+    try:
+        # ---- Phase 1: Fetch and Ingest ----
+        # Pull PR metadata + diff from GitHub API
+        pr_data = fetch_pr_data(repo=repo, pr_number=pr_number)
+        # Land the raw data in Snowflake for auditability
+        load_pr_to_snowflake(pr_data)
+
+        # ---- Phase 2: AI Assessment ----
+        # Use Snowflake Cortex AI to classify risk and generate a summary
+        assessment = cortex_assess_pr(pr_data)
+        # Query Snowflake for this author&#x27;s historical PR track record
+        history = get_historical_context(pr_data)
+        # Combine Cortex output + history into an effective risk decision
+        decision = make_decision(pr_data, assessment, history)
+
+        # ---- Phase 3: Human Gate (conditional) ----
+        # This is runtime branching — the path depends on what Cortex returned
+        if decision[&quot;requires_approval&quot;]:
+            # Send a rich Slack message with a &quot;Review &amp; Approve&quot; button
+            slack_approval_request(pr_data, assessment, decision, flow_run_id)
+
+            # PAUSE the flow — execution literally stops here and waits
+            # for a human to submit the ReviewDecision form in Prefect Cloud.
+            # timeout=86400 means the flow will fail if no one responds in 24h.
+            review = pause_flow_run(
+                wait_for_input=ReviewDecision.with_initial_data(
+                    approved=False, reviewer_name=&quot;&quot;,
+                ),
+                timeout=86400,
+            )
+
+            decision[&quot;final_approved&quot;] = review.approved
+            decision[&quot;reviewer&quot;] = review.reviewer_name
+
+            # Write the assessment BEFORE the early return — every decision
+            # (approved or rejected) gets an audit trail in Snowflake
+            write_assessment(pr_data, assessment, decision,
+                             reviewer=review.reviewer_name, reviewer_notes=review.notes)
+
+            if not review.approved:
+                # Rejected: close the PR on GitHub + notify Slack, then exit
+                close_github_pr(pr_data, assessment, decision)
+                slack_completion_notice(pr_data, assessment, decision)
+                return
+
+        else:
+            # Low risk — auto-approve without human intervention
+            decision[&quot;final_approved&quot;] = True
+            decision[&quot;reviewer&quot;] = &quot;auto&quot;
+            write_assessment(pr_data, assessment, decision)
+
+        # ---- Phase 4: Close the Loop ----
+        # Merge the PR on GitHub and post the Cortex AI review comment
+        close_github_pr(pr_data, assessment, decision)
+        # Send a final Slack notification with the outcome
+        slack_completion_notice(pr_data, assessment, decision)
+
+    finally:
+        # Always close the Snowflake connection, even if the flow fails
+        conn.close()
+
+
+if __name__ == &quot;__main__&quot;:
+    pr_review_agent(repo=&quot;your-org/your-repo&quot;, pr_number=1)</code></pre></div>
+<p><strong>What's happening:</strong></p>
+<ul><li><strong>Result persistence</strong> — set <code>PREFECT_RESULTS_PERSIST_BY_DEFAULT=true</code> in your environment to persist all task results automatically. This enables durable execution: retries skip completed work. By default results persist to <code>~/.prefect/storage/</code> locally; for production, configure a remote result storage block (S3, GCS, or Azure Blob) so results survive across machines.</li><li><strong><code>pause_flow_run(timeout=86400)</code></strong> — execution stops and waits up to 24 hours for human input</li><li><strong><code>QUERY_TAG</code></strong> — tags all Snowflake queries for cost attribution in <code>QUERY_HISTORY</code></li><li><strong>The <code>if</code> branch</strong> — a Python <code>if</code> evaluated at runtime based on Cortex AI output</li><li><strong><code>write_assessment</code> runs for both approved AND rejected PRs</strong> — every decision gets an audit trail in Snowflake</li><li><strong>Module-level connection</strong> — tasks call <code>get_connection()</code> internally rather than receiving the connection as a parameter. This keeps task signatures clean (only business data in/out), avoids serialization issues with caching, and follows idiomatic Prefect patterns.</li></ul>
+<blockquote><strong>Slack tasks and <code>write_assessment</code></strong> are defined in the companion repo. They follow the same pattern: tasks call <code>get_connection()</code> internally and use bind parameters for all Snowflake queries.</blockquote></section>
+<section id="run-it"><h2>Run It</h2><div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code>GITHUB_TOKEN=your_token \
+SNOWFLAKE_CONNECTION_NAME=your_connection \
+SLACK_BOT_TOKEN=xoxb-your-token \
+SLACK_CHANNEL=your-channel \
+python pr_review_pipeline.py</code></pre></div>
+<p>Watch the pipeline execute in real-time in Prefect Cloud. You'll see:</p>
+<ol><li>Each task completing on the timeline</li><li>The Cortex AI assessment results in the logs</li><li>The Slack notification arrive</li><li>The flow pause, waiting for your approval</li><li>After you approve — the PR merges on GitHub, Slack gets the completion notice, and the assessment lands in Snowflake</li></ol>
+<blockquote>This runs the flow as a local Python process connected to Prefect Cloud. For production, deploy with <code>prefect deploy</code> and run your worker on <a href="https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview" target="_blank">Snowpark Container Services</a> — your orchestration compute stays inside Snowflake's security perimeter. See the <a href="https://github.com/snowflake-eng/sfguide-getting-started-with-prefect-and-snowflake" target="_blank">companion repo</a> for a <code>prefect.yaml</code> deployment example.</blockquote>
+<p><img src="assets/SS5.png" alt="SS5 — Prefect Cloud flow run timeline showing all tasks completed in sequence" style="max-width:100%;border-radius:8px;margin:20px 0;"/></p>
+<p><img src="assets/SS6.png" alt="SS6 — Slack channel showing the completion notice (APPROVED)" style="max-width:100%;border-radius:8px;margin:20px 0;"/></p></section>
+<section id="deploy-it"><h2>Deploy It</h2><p>Running <code>python pr_review_pipeline.py</code> is great for development. To operate this as a production workflow — with authentication, RBAC, scheduling, and event triggers — deploy to <strong>Prefect Cloud</strong>. You'll need a worker to execute your flows. Options include:</p>
+<ul><li><strong>Process worker</strong> — runs on your local machine (simplest for testing)</li><li><strong>Prefect Managed Execution</strong> — Prefect runs it for you (no infrastructure to manage)</li><li><strong>SPCS worker</strong> — runs inside Snowpark Container Services (keeps compute in Snowflake's perimeter)</li></ul>
+<p>Create a <code>prefect.yaml</code> at the root of your project:</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">yaml</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code>pull:
+  - prefect.deployments.steps.git_clone:
+      repository: &quot;{{ $GIT_REPO_URL }}&quot;
+      branch: main
+      access_token: &quot;{{ $GIT_ACCESS_TOKEN }}&quot;
+
+deployments:
+  - name: pr-review-agent
+    entrypoint: pr_review_pipeline.py:pr_review_agent
+    work_pool:
+      name: spcs-pool    # Prefect Worker on Snowpark Container Services
+    tags: [github, code-review, cortex-ai]
+    parameters:
+      repo: your-org/your-repo
+      pr_number: 1
+    enforce_parameter_schema: true
+    description: &quot;Agentic PR review: GitHub → Cortex AI → Human approval → Merge&quot;</code></pre></div>
+<p>Deploy and run:</p>
+<div class="code-block"><div class="code-header"><span class="code-lang">bash</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code># Register the deployment with Prefect Cloud
+prefect deploy --all
+
+# Trigger it on-demand from the CLI
+prefect deployment run pr-review-agent/pr-review-agent \
+  --param repo=your-org/your-repo \
+  --param pr_number=42</code></pre></div>
+<p>From here you can add <strong>Automations</strong> in Prefect Cloud to trigger this deployment from a GitHub webhook — turning <code>python pr_review_pipeline.py</code> into a fully event-driven workflow.</p>
+<blockquote>For production, we recommend <strong>Prefect Cloud</strong> (authentication, RBAC, audit logs, SSO) with a <strong>Prefect Worker running on Snowpark Container Services (SPCS)</strong> — keeping your orchestration compute inside Snowflake's security perimeter.</blockquote></section>
+<section id="what-just-happened"><h2>What Just Happened</h2><p>Once your accounts are set up, the pipeline runs in under a minute:</p>
+<ol><li><strong>Fetched</strong> a PR from GitHub (external API)</li><li><strong>Loaded</strong> it into Snowflake (data persistence)</li><li><strong>Ran Cortex AI</strong> to classify risk and summarize changes (AI inside Snowflake)</li><li><strong>Queried</strong> author history for context (analytical query)</li><li><strong>Decided at runtime</strong> whether to auto-approve or escalate (dynamic branching)</li><li><strong>Notified</strong> your team in Slack with a rich message (external notification)</li><li><strong>Paused</strong> and waited for a human to approve (human-in-the-loop)</li><li><strong>Wrote</strong> the assessment to Snowflake (audit trail)</li><li><strong>Merged</strong> the PR on GitHub with a Cortex AI review comment (closing the loop)</li><li><strong>Sent</strong> a final Slack notification confirming the decision (completion notice)</li></ol>
+<p>That's <strong>four systems</strong> (GitHub, Snowflake, Slack, Prefect), <strong>two Cortex AI calls</strong>, a <strong>human approval gate</strong>, and <strong>runtime decision-making</strong> — all in one Python flow with full observability.</p>
+<p>If the pipeline had failed at step 8, retrying would skip steps 1–5 entirely. Durable execution means you don't pay for expensive work twice.</p>
+<p><img src="assets/SS7.png" alt="SS7 — GitHub PR showing the Cortex AI review comment posted by the pipeline and Merged status" style="max-width:100%;border-radius:8px;margin:20px 0;"/></p></section>
+<section id="cleanup"><h2>Cleanup</h2><blockquote>Skip this if you want to keep your PR assessment history in Snowflake.</blockquote>
+<div class="code-block"><div class="code-header"><span class="code-lang">sql</span><button class="copy-btn" onclick="navigator.clipboard.writeText(this.closest('.code-block').querySelector('code').textContent)">Copy</button></div><pre><code>DROP DATABASE IF EXISTS PREFECT_QUICKSTART;
+DROP WAREHOUSE IF EXISTS PREFECT_WH;</code></pre></div></section>
+<section id="conclusion"><h2>Conclusion</h2><p>You built a pipeline that no single platform can run alone. GitHub triggers the work. Snowflake stores the data and runs the AI. Prefect coordinates everything — with durability, human gates, and runtime decisions. Slack keeps the team in the loop. And the PR gets merged or closed automatically.</p>
+<h3>Now Imagine Your Workflows</h3>
+<p>The PR review pipeline is one example. But think about the workflows in your organization that span systems and require runtime decisions:</p>
+<ul><li><strong>Data quality incident response</strong> — A freshness check fails in Snowflake. The pipeline queries downstream impact using Cortex AI, pages the on-call team in PagerDuty, pauses for a human to decide whether to halt dependent pipelines or proceed, then updates the data catalog and Slack channel with the resolution.</li></ul>
+<ul><li><strong>ML model deployment with guardrails</strong> — A new model version is trained. The pipeline runs validation against holdout data in Snowflake, uses Cortex AI to compare performance against the current production model, pauses for ML lead approval if performance regresses on any segment, then promotes to production and notifies stakeholders.</li></ul>
+<ul><li><strong>Compliance-driven data access</strong> — A user requests access to a sensitive dataset. The pipeline checks their role and clearance in Snowflake, uses Cortex AI to classify the sensitivity of the requested data, routes approval to the data steward if sensitivity is high, provisions access on approval, and logs the entire chain for audit.</li></ul>
+<ul><li><strong>Multi-vendor ETL orchestration</strong> — Data arrives from Salesforce, Stripe, and a partner SFTP. The pipeline validates each source, loads to Snowflake, uses Cortex AI to detect anomalies in the combined dataset, pauses for analyst review if anomalies exceed thresholds, then triggers dbt transformations and refreshes downstream dashboards.</li></ul>
+<p>Any time your workflow crosses system boundaries, makes decisions at runtime, or needs a human in the loop — that's where Prefect and Snowflake work together.</p>
+<p>We hope this guide gave you a glimpse of what's possible. <strong>Snowflake powers the intelligence. Prefect orchestrates the workflow.</strong> The code is in the <a href="https://github.com/snowflake-eng/sfguide-getting-started-with-prefect-and-snowflake" target="_blank">companion repo</a> — fork it and make it yours.</p>
+<h3>Resources</h3>
+<table><tr><th>Topic</th><th>Link</th></tr>
+<tr><td>Full source code and setup</td><td><a href="https://github.com/snowflake-eng/sfguide-getting-started-with-prefect-and-snowflake" target="_blank">Companion Repo</a></td></tr>
+<tr><td>Prefect Documentation</td><td><a href="https://docs.prefect.io/" target="_blank">docs.prefect.io</a></td></tr>
+<tr><td>Snowflake Cortex AI</td><td><a href="https://docs.snowflake.com/en/user-guide/snowflake-cortex/llm-functions" target="_blank">Cortex AI Functions</a></td></tr>
+<tr><td>Durable Execution</td><td><a href="https://docs.prefect.io/v3/develop/task-caching" target="_blank">Task Caching</a></td></tr>
+<tr><td>Human-in-the-Loop</td><td><a href="https://docs.prefect.io/v3/advanced/interactive" target="_blank">Interactive Workflows</a></td></tr>
+<tr><td>Prefect Workers on SPCS</td><td><a href="https://docs.snowflake.com/en/developer-guide/snowpark-container-services/overview" target="_blank">Snowpark Container Services</a></td></tr>
+</table></section>
+  </main>
+  <aside class="toc">
+    <div class="toc-title">On this page</div>
+    <a href="#overview" class="toc-link">Overview</a>
+<a href="#setup" class="toc-link">Setup</a>
+<a href="#the-pipeline-fetch-and-ingest" class="toc-link">Building the Pipeline</a>
+<a href="#the-pipeline-fetch-and-ingest" class="toc-link toc-sub">Fetch and Ingest</a>
+<a href="#the-pipeline-cortex-ai-assessment" class="toc-link toc-sub">Cortex AI Assessment</a>
+<a href="#the-pipeline-decision-and-human-gate" class="toc-link toc-sub">Decision and Human Gate</a>
+<a href="#the-pipeline-close-the-loop" class="toc-link toc-sub">Close the Loop</a>
+<a href="#the-flow-wiring-it-together" class="toc-link toc-sub">Wiring It Together</a>
+<a href="#run-it" class="toc-link">Run It</a>
+<a href="#deploy-it" class="toc-link">Deploy It</a>
+<a href="#what-just-happened" class="toc-link">What Just Happened</a>
+<a href="#cleanup" class="toc-link">Cleanup</a>
+<a href="#conclusion" class="toc-link">Conclusion</a>
+  </aside>
+</div>
+<script>
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      document.querySelectorAll('.toc-link').forEach(l => l.classList.remove('active'));
+      const id = entry.target.getAttribute('id');
+      let link = document.querySelector(`.toc-link[href="#${id}"]`);
+      if (!link) {
+        const setupIds = ['set-up-your-snowflake-environment','set-up-your-python-environment','configure-snowflake-credentials'];
+        if (setupIds.includes(id)) {
+          link = document.querySelector('.toc-link[href="#set-up-your-snowflake-environment"]');
+        }
+      }
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+document.querySelectorAll('section[id]').forEach(sec => observer.observe(sec));
+document.querySelectorAll('.toc-link').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    const target = document.querySelector(link.getAttribute('href'));
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+});
+</script>
+</body>
+</html>
