@@ -1,0 +1,17 @@
+pull:
+  - prefect.deployments.steps.git_clone:
+      repository: "{{ $GIT_REPO_URL }}"
+      branch: main
+      access_token: "{{ $GIT_ACCESS_TOKEN }}"
+
+deployments:
+  - name: pr-review-agent
+    entrypoint: pr_review_pipeline.py:pr_review_agent
+    work_pool:
+      name: spcs-pool
+    tags: [github, code-review, cortex-ai]
+    parameters:
+      repo: your-org/your-repo
+      pr_number: 1
+    enforce_parameter_schema: true
+    description: "Agentic PR review: GitHub > Cortex AI > Human approval > Merge"
